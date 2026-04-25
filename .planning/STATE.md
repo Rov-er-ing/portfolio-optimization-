@@ -3,10 +3,10 @@
 ## Project Status
 - **Current Milestone:** Milestone 1
 - **Current Phase:** Phase 1
-- **Overall Progress:** 0%
+- **Overall Progress:** 5%
 
 ## Active Task
-- [ ] Task 1.1: Setup project structure and `config.py`.
+- [ ] Phase 1 Execution: Environment & Foundation.
 
 ## Context Memory
 - **Project Initialized:** 2026-04-25
@@ -17,4 +17,4 @@
 - None.
 
 ## Next Steps
-1. Run `/gsd-plan-phase 1` to detail the first implementation phase.
+1. Run `/gsd-execute-phase 1` to begin implementation.
