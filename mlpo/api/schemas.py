@@ -77,6 +77,7 @@ class OptimizeResponse(BaseModel):
     timestamp: datetime
     model_version: str = "MLPO_v1.0"
     allocations: List[PortfolioAllocation]
+    efficiency_score: float
     regime: RegimeInfo
     risk_flags: RiskFlags
     expected_turnover: float

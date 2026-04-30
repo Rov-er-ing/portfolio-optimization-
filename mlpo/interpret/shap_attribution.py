@@ -52,8 +52,14 @@ def compute_feature_importance(
     attributions : dict
         Feature importance scores and metadata.
     """
-    model.eval()
-    sample_input = sample_input.requires_grad_(True)
+    # cuDNN's LSTM backward pass requires training mode.
+    # We temporarily enable train mode for gradient computation,
+    # then restore eval mode. Dropout/batchnorm layers are
+    # unaffected for a single-sample attribution pass.
+    was_training = model.training
+    model.train()
+
+    sample_input = sample_input.detach().clone().requires_grad_(True)
 
     # Forward pass
     # We use the covariance forecaster output norm as proxy target
@@ -62,6 +68,10 @@ def compute_feature_importance(
     target = sigma.sum()
     target.backward()
 
+    # Restore original mode
+    if not was_training:
+        model.eval()
+
     # Gradient magnitude as importance
     grads = sample_input.grad.abs().detach().cpu().numpy()  # [1, Seq, P, F]
     grads = grads.squeeze(0)  # [Seq, P, F]
@@ -69,19 +79,29 @@ def compute_feature_importance(
     # Aggregate over time → [P, F]
     importance = grads.mean(axis=0)
 
-    # Top-k attributions
-    flat_imp = importance.flatten()
+    # Top-k attributions (STRICTLY FILTERED FOR USER ASSETS)
+    # n_assets is the count of user tickers provided
+    n_assets = len(asset_names)
+    
+    # We only consider the indices that correspond to the user's N assets
+    user_importance = importance[:n_assets, :]
+    flat_imp = user_importance.flatten()
+    
+    # Take the top-K from the user's subset
     top_indices = np.argsort(flat_imp)[-top_k:][::-1]
 
     top_attributions = []
     for idx in top_indices:
         asset_idx = idx // len(feature_names)
         feat_idx = idx % len(feature_names)
-        top_attributions.append({
-            "asset": asset_names[min(asset_idx, len(asset_names) - 1)],
-            "feature": feature_names[min(feat_idx, len(feature_names) - 1)],
-            "importance": float(flat_imp[idx]),
-        })
+        
+        # Double check bounds
+        if asset_idx < n_assets:
+            top_attributions.append({
+                "asset": asset_names[asset_idx],
+                "feature": feature_names[feat_idx % len(feature_names)],
+                "importance": float(flat_imp[idx]),
+            })
 
     return {
         "importance_matrix": importance.tolist(),

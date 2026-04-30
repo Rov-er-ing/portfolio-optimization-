@@ -139,34 +139,42 @@ class RegimeDetector(nn.Module):
         Redistribute risk budget to force >= 40% defensive allocation.
 
         The override preserves differentiability for non-overridden
-        samples in the batch; overridden samples get a detached budget.
+        samples in the batch. Out-of-place operations are used to avoid
+        PyTorch inplace modification errors during backward pass.
         """
-        beta_override = beta.clone()
-
         # Defensive indices: Fixed Income + Commodities
         defensive_idx = config.DEFENSIVE_INDICES
         equity_idx = list(range(len(config.EQUITIES)))
+        n_def = len(defensive_idx)
 
+        beta_overrides = []
         for i in range(beta.shape[0]):
             if vix_mask[i]:
                 current_defensive = beta[i, defensive_idx].sum()
                 shortfall = config.DEFENSIVE_ALLOC - current_defensive
 
                 if shortfall > 0:
-                    # Reduce equity budgets proportionally
                     equity_total = beta[i, equity_idx].sum()
                     if equity_total > config.EPSILON:
                         reduction_ratio = shortfall / equity_total
-                        reduction_ratio = min(reduction_ratio, 0.8)
+                        reduction_ratio = torch.clamp(reduction_ratio, max=0.8)
 
-                        beta_override[i, equity_idx] *= (1 - reduction_ratio)
-                        # Redistribute to defensives equally
-                        n_def = len(defensive_idx)
-                        beta_override[i, defensive_idx] += shortfall / n_def
+                        multiplier = torch.ones_like(beta[i])
+                        multiplier[equity_idx] = 1.0 - reduction_ratio
+                        
+                        adder = torch.zeros_like(beta[i])
+                        adder[defensive_idx] = shortfall / n_def
 
-                # Re-normalise to sum=1
-                beta_override[i] = beta_override[i] / (
-                    beta_override[i].sum() + config.EPSILON
-                )
+                        new_beta_i = beta[i] * multiplier + adder
+                        
+                        # Re-normalise to sum=1
+                        new_beta_i = new_beta_i / (new_beta_i.sum() + config.EPSILON)
+                        beta_overrides.append(new_beta_i)
+                    else:
+                        beta_overrides.append(beta[i])
+                else:
+                    beta_overrides.append(beta[i])
+            else:
+                beta_overrides.append(beta[i])
 
-        return beta_override
+        return torch.stack(beta_overrides)

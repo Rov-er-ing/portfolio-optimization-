@@ -13,11 +13,9 @@ def fetch_historical_data(tickers, start_date="2010-01-01", end_date=None):
     """
     logger.info(f"Fetching data for {len(tickers)} tickers from {start_date}...")
     
-    # yfinance often works better with '.' instead of '-' for some tickers
-    sanitized_tickers = [t.replace("-", ".") for t in tickers]
-    
+    # yfinance uses '-' for class shares like BRK-B
     try:
-        data = yf.download(sanitized_tickers, start=start_date, end=end_date, auto_adjust=True)
+        data = yf.download(tickers, start=start_date, end=end_date, auto_adjust=True)
         # We primarily need adjusted Close
         if 'Close' in data.columns:
             prices = data['Close']

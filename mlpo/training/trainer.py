@@ -15,7 +15,7 @@ Memory management for RTX 3050 (6GB VRAM):
 
 import torch
 import torch.nn as nn
-from torch.cuda.amp import autocast, GradScaler
+from torch.amp import autocast, GradScaler
 from typing import Dict, Optional, Tuple
 import logging
 import time
@@ -55,7 +55,7 @@ class Trainer:
         self.optimizer = torch.optim.AdamW(
             model.parameters(), lr=lr, weight_decay=weight_decay,
         )
-        self.scaler = GradScaler(enabled=use_amp)
+        self.scaler = GradScaler('cuda', enabled=use_amp) if torch.cuda.is_available() else GradScaler('cpu', enabled=use_amp)
         self.use_amp = use_amp
         self.device = config.DEVICE
 
@@ -90,7 +90,7 @@ class Trainer:
             # Note: cvxpylayers requires float64 internally, so we
             # disable autocast for the risk_budgeting step. The LSTM
             # and regime detector benefit from FP16.
-            with autocast(enabled=self.use_amp):
+            with autocast('cuda', enabled=self.use_amp) if torch.cuda.is_available() else autocast('cpu', enabled=self.use_amp):
                 result = self.model(asset_feats, macro_feats, vix)
                 weights = result["weights"]
 

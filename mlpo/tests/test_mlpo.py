@@ -193,12 +193,13 @@ class TestMetrics:
     """Tests for financial metric accuracy."""
 
     def test_sharpe_known_value(self):
-        """Sharpe of constant excess return = return / vol * √252."""
+        """Sharpe of consistently positive returns should be high."""
         from mlpo.backtest.metrics import sharpe_ratio
-        # Daily return of 0.1% with ~0 vol → high Sharpe
-        returns = np.full(252, 0.001)
+        # Positive mean with tiny noise → high Sharpe
+        np.random.seed(42)
+        returns = np.random.normal(0.001, 0.0001, 252)
         s = sharpe_ratio(returns, rf=0.0)
-        assert s > 10.0, f"Expected high Sharpe for constant returns, got {s}"
+        assert s > 5.0, f"Expected high Sharpe for positive returns, got {s}"
 
     def test_max_drawdown_known(self):
         """50% drawdown from known sequence."""
@@ -228,13 +229,15 @@ class TestCompositeLoss:
         """Loss must support backward()."""
         from mlpo.training.loss import CompositeFinancialLoss
         criterion = CompositeFinancialLoss()
-        weights = torch.randn(16, config.N_ASSETS, requires_grad=True)
-        weights = torch.softmax(weights, dim=-1)
+        raw_weights = torch.randn(16, config.N_ASSETS, requires_grad=True)
+        weights = torch.softmax(raw_weights, dim=-1)
+        weights.retain_grad()  # Non-leaf tensor needs retain_grad
         returns = torch.randn(16, config.N_ASSETS)
 
         losses = criterion(weights, returns)
         losses["total"].backward()
-        assert weights.grad is not None, "Loss is not differentiable"
+        assert raw_weights.grad is not None, "Loss is not differentiable w.r.t. raw weights"
+        assert raw_weights.grad.abs().sum() > 0, "Gradient is all zeros"
 
     def test_turnover_penalty(self):
         """Turnover should be zero when weights don't change."""

@@ -46,7 +46,12 @@ class MLPODataset(Dataset):
         # Note: In a real walk-forward, we'd be careful about the indexing relative to features
         y = self.targets[idx + self.seq_length]
         
-        return X, y
+        # Create dummy macro and VIX features for now
+        # Shape: macro_feats [Seq_Len, N_Macro], VIX [1]
+        macro_feats = torch.zeros(self.seq_length, config.N_MACRO, dtype=torch.float32)
+        vix = torch.tensor([20.0], dtype=torch.float32)  # Default VIX
+        
+        return X, macro_feats, vix, y
 
 def create_dataloaders(feature_dfs, target_df, batch_size=None):
     if batch_size is None:

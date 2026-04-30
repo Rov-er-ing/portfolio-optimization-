@@ -1,0 +1,37 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Project Specific
+data_cache/
+model_artifacts/*.pt
+model_artifacts/*.pth
+outputs/
+logs/
+
+# Frontend (Node/Next)
+node_modules/
+.next/
+out/
+build/
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Antigravity/Agentic temporary files
+.tempmediaStorage/
+artifacts/
+.planning/

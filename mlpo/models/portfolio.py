@@ -111,8 +111,7 @@ class PortfolioOptimizer(nn.Module):
         )  # [B, P], [B, K]
 
         # ── Step 3: Solve for weights ─────────────
-        # Clear intermediate gradients before the memory-intensive
-        # cvxpylayers forward pass on RTX 3050.
+        # Clear cache before the unrolled solver step on RTX 3050.
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 

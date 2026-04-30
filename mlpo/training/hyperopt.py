@@ -85,7 +85,7 @@ def create_objective(
         best_sharpe = float("-inf")
 
         for epoch in range(1, config.EPOCHS + 1):
-            train_metrics = trainer.train_epoch(trainer.model, epoch)
+            train_metrics = trainer.train_epoch(train_loader, epoch)
             val_metrics = trainer.validate(val_loader)
 
             sharpe = val_metrics.get("sharpe", 0.0)

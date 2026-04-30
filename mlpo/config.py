@@ -67,6 +67,7 @@ class Config:
     LSTM_LAYERS: int = 3        # Stacked LSTM depth
     LSTM_DROPOUT: float = 0.3   # Inter-layer dropout
     N_FEATURES: int = 2         # z_score + volatility per asset
+    FEATURE_NAMES: List[str] = ["z_score", "volatility"]
 
     # ──────────────────────────────────────────────
     # Regime Detection  (Module B)

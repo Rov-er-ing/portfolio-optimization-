@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f9f9fd;
+  --foreground: #1a1c1f;
+  --primary: #00241e;
+  --primary-container: #003c33;
+  --secondary: #a83820;
+  --secondary-container: #fc7557;
+  --outline-variant: #c0c8c5;
+  --surface-container: #eeedf1;
+  --surface-container-high: #e8e8ec;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-secondary: var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-outline-variant: var(--outline-variant);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+
+  --font-h1: "Space Grotesk", sans-serif;
+  --font-h2: "Space Grotesk", sans-serif;
+  --font-h3: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  --radius-card: 22px;
+  
+  --spacing-xl: 80px;
+  --spacing-lg: 48px;
+  --spacing-md: 24px;
+  --spacing-sm: 12px;
+  --spacing-xs: 4px;
+  --spacing-base: 8px;
+  --spacing-margin: 32px;
+  --spacing-gutter: 24px;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.5);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-h1);
+}
+
